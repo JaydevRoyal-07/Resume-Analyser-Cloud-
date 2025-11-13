@@ -1,0 +1,45 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: resume_db
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+      - ml-analyzer
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app/uploads:/usr/src/app/app/uploads
+
+  ml-analyzer:
+    build: ./ml-analyzer
+    restart: unless-stopped
+    ports:
+      - "6000:6000"
+    volumes:
+      - ./ml-analyzer:/app
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    ports:
+      - "8501:8501"
+
+volumes:
+  mongo-data:
